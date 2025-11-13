@@ -1,0 +1,6 @@
+@Sales.Api_HostAddress = http://localhost:5007
+
+GET {{Sales.Api_HostAddress}}/sales/
+Accept: application/json
+
+###
