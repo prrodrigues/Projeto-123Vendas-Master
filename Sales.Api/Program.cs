@@ -5,38 +5,56 @@ using Sales.Infrastructure.Persistence;
 using Serilog;
 using Serilog.Formatting.Compact;
 
-var builder = WebApplication.CreateBuilder(args);
-
-// Serilog JSON
 Log.Logger = new LoggerConfiguration()
     .Enrich.FromLogContext()
     .WriteTo.Console(new CompactJsonFormatter())
     .CreateLogger();
 
-builder.Host.UseSerilog();
-
-builder.Services.Configure<RabbitMqOptions>(
-    builder.Configuration.GetSection(RabbitMqOptions.SectionName));
-
-builder.Services.AddSingleton<IEventBus, RabbitMqEventBus>();
-builder.Services.AddSingleton<ISaleRepository, InMemorySaleRepository>();
-builder.Services.AddScoped<ISaleService, SaleService>();
-
-// Swagger
-builder.Services.AddEndpointsApiExplorer();
-builder.Services.AddSwaggerGen();
-
-// Controllers
-builder.Services.AddControllers();
-
-var app = builder.Build();
-
-if (app.Environment.IsDevelopment())
+try
 {
-    app.UseSwagger();
-    app.UseSwaggerUI();
+    var builder = WebApplication.CreateBuilder(args);
+
+    builder.Host.UseSerilog((context, services, loggerConfiguration) =>
+        loggerConfiguration
+            .ReadFrom.Configuration(context.Configuration)
+            .ReadFrom.Services(services)
+            .Enrich.FromLogContext()
+            .WriteTo.Console(new CompactJsonFormatter()));
+
+    builder.Services.Configure<RabbitMqOptions>(
+        builder.Configuration.GetSection(RabbitMqOptions.SectionName));
+
+    builder.Services.AddSingleton<IEventBus, RabbitMqEventBus>();
+    builder.Services.AddSingleton<ISaleRepository, InMemorySaleRepository>();
+    builder.Services.AddScoped<ISaleService, SaleService>();
+
+    // Swagger
+    builder.Services.AddEndpointsApiExplorer();
+    builder.Services.AddSwaggerGen();
+
+    // Controllers
+    builder.Services.AddControllers();
+
+    var app = builder.Build();
+
+    if (app.Environment.IsDevelopment())
+    {
+        app.UseSwagger();
+        app.UseSwaggerUI();
+    }
+
+    app.UseSerilogRequestLogging();
+
+    app.MapControllers();
+
+    app.Run();
 }
-
-app.MapControllers();
-
-app.Run();
+catch (Exception ex)
+{
+    Log.Fatal(ex, "Application terminated unexpectedly");
+    throw;
+}
+finally
+{
+    Log.CloseAndFlush();
+}
