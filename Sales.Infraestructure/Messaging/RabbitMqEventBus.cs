@@ -1,8 +1,9 @@
-﻿using System.Text;
-using System.Text.Json;
+﻿using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using RabbitMQ.Client;
 using Sales.Application.Common.Messaging;
+using System.Text;
+using System.Text.Json;
 
 namespace Sales.Infrastructure.Messaging;
 
@@ -11,10 +12,12 @@ public class RabbitMqEventBus : IEventBus, IDisposable
     private readonly IConnection _connection;
     private readonly IModel _channel;
     private readonly RabbitMqOptions _options;
+    private readonly ILogger<RabbitMqEventBus> _logger;
 
-    public RabbitMqEventBus(IOptions<RabbitMqOptions> options)
+    public RabbitMqEventBus(IOptions<RabbitMqOptions> options, ILogger<RabbitMqEventBus> logger)
     {
         _options = options.Value;
+        _logger = logger;
 
         var factory = new ConnectionFactory
         {
@@ -35,6 +38,7 @@ public class RabbitMqEventBus : IEventBus, IDisposable
 
     public Task PublishAsync<T>(T message, string routingKey, CancellationToken cancellationToken = default)
     {
+        _logger.LogInformation("Publishing message {@Message} with routing key {RoutingKey}", message, routingKey);
         var json = JsonSerializer.Serialize(message);
         var body = Encoding.UTF8.GetBytes(json);
 
