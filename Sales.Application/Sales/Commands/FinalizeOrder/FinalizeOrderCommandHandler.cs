@@ -4,6 +4,7 @@ using Microsoft.Extensions.Logging;
 using Sales.Application.Common.Messaging;
 using Sales.Application.Sales.IntegrationEvents;
 using Sales.Domain.Orders;
+using System.Linq;
 
 namespace Sales.Application.Sales.Commands.FinalizeOrder;
 
@@ -13,9 +14,7 @@ public sealed class FinalizeOrderCommandHandler : IRequestHandler<FinalizeOrderC
     private readonly IEventBus _eventBus;
     private readonly ILogger<FinalizeOrderCommandHandler> _logger;
 
-    public FinalizeOrderCommandHandler(
-        IOrderRepository orderRepository,
-        IEventBus eventBus,
+    public FinalizeOrderCommandHandler(IOrderRepository orderRepository, IEventBus eventBus,
         ILogger<FinalizeOrderCommandHandler> logger)
     {
         _orderRepository = orderRepository;
@@ -36,8 +35,11 @@ public sealed class FinalizeOrderCommandHandler : IRequestHandler<FinalizeOrderC
 
         order.Finalize();
         _logger.LogInformation("Order {OrderId} finalized", request.OrderId);
+        order.Complete(); // domain rule validation inside
 
         await _orderRepository.UpdateAsync(order, cancellationToken);
+
+        _logger.LogInformation("Order {OrderId} finalized successfully", order.Id);
 
         var evt = new OrderFinalizedIntegrationEvent
         {

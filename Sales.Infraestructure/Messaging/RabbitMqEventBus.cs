@@ -6,6 +6,8 @@ using Microsoft.Extensions.Options;
 using RabbitMQ.Client;
 using Sales.Application.Common.Correlation;
 using Sales.Application.Common.Messaging;
+using System.Text;
+using System.Text.Json;
 
 namespace Sales.Infrastructure.Messaging;
 
@@ -25,6 +27,11 @@ public class RabbitMqEventBus : IEventBus, IDisposable
         _options = options.Value;
         _logger = logger;
         _correlationAccessor = correlationAccessor;
+
+    public RabbitMqEventBus(IOptions<RabbitMqOptions> options, ILogger<RabbitMqEventBus> logger)
+    {
+        _options = options.Value;
+        _logger = logger;
 
         var factory = new ConnectionFactory
         {
@@ -51,6 +58,7 @@ public class RabbitMqEventBus : IEventBus, IDisposable
 
     public Task PublishAsync<T>(T message, string routingKey, CancellationToken cancellationToken = default)
     {
+        _logger.LogInformation("Publishing message {@Message} with routing key {RoutingKey}", message, routingKey);
         var json = JsonSerializer.Serialize(message);
         var body = Encoding.UTF8.GetBytes(json);
 
@@ -70,6 +78,7 @@ public class RabbitMqEventBus : IEventBus, IDisposable
             props.MessageId,
             _options.Exchange,
             routingKey);
+        props.DeliveryMode = 2; // persistence
 
         _channel.BasicPublish(
             exchange: _options.Exchange,

@@ -35,7 +35,7 @@ public class Order
     public decimal CalculateTotal()
         => _items.Sum(i => i.Quantity * i.UnitPrice);
 
-    public void Finalize()
+    public void Complete()
     {
         if (!_items.Any())
             throw new InvalidOperationException("Cannot finalize an order with no items.");
