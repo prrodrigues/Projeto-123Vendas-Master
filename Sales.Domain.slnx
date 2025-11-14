@@ -1,4 +1,7 @@
 <Solution>
+  <SolutionItems>
+    <SolutionItem Path="global.json" />
+  </SolutionItems>
   <Project Path="Sales.Api/Sales.Api.csproj" />
   <Project Path="Sales.Application/Sales.Application.csproj" />
   <Project Path="Sales.Domain/Sales.Domain.csproj" />
