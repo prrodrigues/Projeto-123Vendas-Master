@@ -1,4 +1,5 @@
-﻿using MediatR;
+using System.Linq;
+using MediatR;
 using Microsoft.Extensions.Logging;
 using Sales.Application.Common.Messaging;
 using Sales.Application.Sales.IntegrationEvents;
@@ -27,8 +28,13 @@ public sealed class FinalizeOrderCommandHandler : IRequestHandler<FinalizeOrderC
 
         var order = await _orderRepository.GetByIdAsync(request.OrderId, cancellationToken);
         if (order is null)
+        {
+            _logger.LogWarning("Order {OrderId} not found", request.OrderId);
             throw new InvalidOperationException("Pedido não encontrado.");
+        }
 
+        order.Finalize();
+        _logger.LogInformation("Order {OrderId} finalized", request.OrderId);
         order.Complete(); // domain rule validation inside
 
         await _orderRepository.UpdateAsync(order, cancellationToken);
@@ -48,6 +54,11 @@ public sealed class FinalizeOrderCommandHandler : IRequestHandler<FinalizeOrderC
                 UnitPrice = i.UnitPrice
             }).ToArray()
         };
+
+        _logger.LogInformation(
+            "Publishing order finalized event for order {OrderId} with {ItemCount} items",
+            order.Id,
+            evt.Items.Length);
 
         await _eventBus.PublishAsync(evt, "sales.order.finalized", cancellationToken);
 

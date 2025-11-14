@@ -1,3 +1,5 @@
+using Sales.Api.Middleware;
+using Sales.Application.Common.Correlation;
 using Sales.Application.Common.Messaging;
 using Sales.Application.Sales;
 using Sales.Infrastructure.Messaging;
@@ -24,6 +26,7 @@ try
     builder.Services.Configure<RabbitMqOptions>(
         builder.Configuration.GetSection(RabbitMqOptions.SectionName));
 
+    builder.Services.AddSingleton<ICorrelationContextAccessor, CorrelationContextAccessor>();
     builder.Services.AddSingleton<IEventBus, RabbitMqEventBus>();
     builder.Services.AddSingleton<ISaleRepository, InMemorySaleRepository>();
     builder.Services.AddScoped<ISaleService, SaleService>();
@@ -43,6 +46,7 @@ try
         app.UseSwaggerUI();
     }
 
+    app.UseMiddleware<CorrelationIdMiddleware>();
     app.UseSerilogRequestLogging();
 
     app.MapControllers();
