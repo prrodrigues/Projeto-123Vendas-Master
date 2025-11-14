@@ -14,7 +14,7 @@ public class SaleItemTests
         // Arrange
         var item = new SaleItem(
             productId: Guid.NewGuid(),
-            productName: "Produto A",
+            productName: "Product A",
             quantity: 3,
             unitPrice: 10m
         );
@@ -29,7 +29,7 @@ public class SaleItemTests
     {
         var item = new SaleItem(
             Guid.NewGuid(),
-            "Produto X",
+            "Product X",
             5,
             10m
         );
@@ -43,7 +43,7 @@ public class SaleItemTests
     {
         var item = new SaleItem(
             Guid.NewGuid(),
-            "Produto X",
+            "Product X",
             12,
             10m
         );
@@ -58,7 +58,7 @@ public class SaleItemTests
         Should.Throw<ArgumentException>(() =>
             new SaleItem(
                 Guid.NewGuid(),
-                "Produto X",
+                "Product X",
                 21,
                 10m
             )
@@ -70,7 +70,7 @@ public class SaleItemTests
     {
         var item = new SaleItem(
             Guid.NewGuid(),
-            "Produto A",
+            "Product A",
             4,
             10m
         );

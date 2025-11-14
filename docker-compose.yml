@@ -1,0 +1,24 @@
+version: "3.9"
+
+services:
+  rabbitmq:
+    image: rabbitmq:3-management
+    container_name: broker-rabbitmq
+    ports:
+      - "5672:5672"   # porta AMQP
+      - "15672:15672" # painel de management
+    environment:
+      RABBITMQ_DEFAULT_USER: guest
+      RABBITMQ_DEFAULT_PASS: guest
+
+  sales-api:
+    build:
+      context: .
+      dockerfile: Sales.Api/Dockerfile  # ajuste o caminho se necessário
+    container_name: sales-api
+    ports:
+      - "8080:8080"
+    environment:
+      ASPNETCORE_ENVIRONMENT: "Production"
+    depends_on:
+      - rabbitmq

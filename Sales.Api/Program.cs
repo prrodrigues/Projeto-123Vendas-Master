@@ -1,3 +1,5 @@
+using Sales.Application.Common.Messaging;
+using Sales.Infrastructure.Messaging;
 using Serilog;
 using Serilog.Formatting.Compact;
 
@@ -10,6 +12,11 @@ Log.Logger = new LoggerConfiguration()
     .CreateLogger();
 
 builder.Host.UseSerilog();
+
+builder.Services.Configure<RabbitMqOptions>(
+    builder.Configuration.GetSection(RabbitMqOptions.SectionName));
+
+builder.Services.AddSingleton<IEventBus, RabbitMqEventBus>();
 
 // Swagger
 builder.Services.AddEndpointsApiExplorer();
