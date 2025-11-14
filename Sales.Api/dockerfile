@@ -1,0 +1,27 @@
+# ===== build stage =====
+FROM mcr.microsoft.com/dotnet/sdk:8.0 AS build
+WORKDIR /src
+
+# Copia apenas os csproj primeiro (melhora cache)
+COPY ["Sales.Api/Sales.Api.csproj", "Sales.Api/"]
+COPY ["Sales.Application/Sales.Application.csproj", "Sales.Application/"]
+COPY ["Sales.Domain/Sales.Domain.csproj", "Sales.Domain/"]
+COPY ["Sales.Infrastructure/Sales.Infrastructure.csproj", "Sales.Infrastructure/"]
+
+RUN dotnet restore "Sales.Api/Sales.Api.csproj"
+
+# Copia o restante do código
+COPY . .
+
+RUN dotnet publish "Sales.Api/Sales.Api.csproj" -c Release -o /app/publish
+
+# ===== runtime stage =====
+FROM mcr.microsoft.com/dotnet/aspnet:8.0 AS final
+WORKDIR /app
+
+COPY --from=build /app/publish .
+
+ENV ASPNETCORE_URLS=http://+:8080
+EXPOSE 8080
+
+ENTRYPOINT ["dotnet", "Sales.Api.dll"]
