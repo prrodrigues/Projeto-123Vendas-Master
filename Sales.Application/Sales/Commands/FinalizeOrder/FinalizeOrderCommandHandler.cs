@@ -1,5 +1,6 @@
-﻿using System.Linq;
+using System.Linq;
 using MediatR;
+using Microsoft.Extensions.Logging;
 using Sales.Application.Common.Messaging;
 using Sales.Application.Sales.IntegrationEvents;
 using Sales.Domain.Orders;
@@ -10,20 +11,31 @@ public sealed class FinalizeOrderCommandHandler : IRequestHandler<FinalizeOrderC
 {
     private readonly IOrderRepository _orderRepository;
     private readonly IEventBus _eventBus;
+    private readonly ILogger<FinalizeOrderCommandHandler> _logger;
 
-    public FinalizeOrderCommandHandler(IOrderRepository orderRepository, IEventBus eventBus)
+    public FinalizeOrderCommandHandler(
+        IOrderRepository orderRepository,
+        IEventBus eventBus,
+        ILogger<FinalizeOrderCommandHandler> logger)
     {
         _orderRepository = orderRepository;
         _eventBus = eventBus;
+        _logger = logger;
     }
 
     public async Task<Unit> Handle(FinalizeOrderCommand request, CancellationToken cancellationToken)
     {
+        _logger.LogInformation("Finalizing order {OrderId}", request.OrderId);
+
         var order = await _orderRepository.GetByIdAsync(request.OrderId, cancellationToken);
         if (order is null)
+        {
+            _logger.LogWarning("Order {OrderId} not found", request.OrderId);
             throw new InvalidOperationException("Pedido não encontrado.");
+        }
 
-        order.Finalize(); // regra de domínio
+        order.Finalize();
+        _logger.LogInformation("Order {OrderId} finalized", request.OrderId);
 
         await _orderRepository.UpdateAsync(order, cancellationToken);
 
@@ -40,6 +52,11 @@ public sealed class FinalizeOrderCommandHandler : IRequestHandler<FinalizeOrderC
                 UnitPrice = i.UnitPrice
             }).ToArray()
         };
+
+        _logger.LogInformation(
+            "Publishing order finalized event for order {OrderId} with {ItemCount} items",
+            order.Id,
+            evt.Items.Length);
 
         await _eventBus.PublishAsync(evt, "sales.order.finalized", cancellationToken);
 
