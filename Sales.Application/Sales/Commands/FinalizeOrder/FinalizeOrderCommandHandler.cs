@@ -23,7 +23,7 @@ public sealed class FinalizeOrderCommandHandler : IRequestHandler<FinalizeOrderC
         if (order is null)
             throw new InvalidOperationException("Pedido não encontrado.");
 
-        order.Finalize(); // regra de domínio
+        order.Complete(); // domain rule validation inside
 
         await _orderRepository.UpdateAsync(order, cancellationToken);
 

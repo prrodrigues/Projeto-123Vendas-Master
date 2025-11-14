@@ -5,8 +5,8 @@ services:
     image: rabbitmq:3-management
     container_name: broker-rabbitmq
     ports:
-      - "5672:5672"   # porta AMQP
-      - "15672:15672" # painel de management
+      - "5672:5672"    # AMQP
+      - "15672:15672"  # web panel
     environment:
       RABBITMQ_DEFAULT_USER: guest
       RABBITMQ_DEFAULT_PASS: guest
@@ -14,7 +14,7 @@ services:
   sales-api:
     build:
       context: .
-      dockerfile: Sales.Api/Dockerfile  # ajuste o caminho se necessário
+      dockerfile: Sales.Api/Dockerfile
     container_name: sales-api
     ports:
       - "8080:8080"

@@ -40,7 +40,7 @@ public class RabbitMqEventBus : IEventBus, IDisposable
 
         var props = _channel.CreateBasicProperties();
         props.ContentType = "application/json";
-        props.DeliveryMode = 2; // persistente
+        props.DeliveryMode = 2; // persistence
 
         _channel.BasicPublish(
             exchange: _options.Exchange,
