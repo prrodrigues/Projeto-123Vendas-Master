@@ -28,11 +28,6 @@ public class RabbitMqEventBus : IEventBus, IDisposable
         _logger = logger;
         _correlationAccessor = correlationAccessor;
 
-    public RabbitMqEventBus(IOptions<RabbitMqOptions> options, ILogger<RabbitMqEventBus> logger)
-    {
-        _options = options.Value;
-        _logger = logger;
-
         var factory = new ConnectionFactory
         {
             HostName = _options.HostName,

@@ -33,7 +33,6 @@ public sealed class FinalizeOrderCommandHandler : IRequestHandler<FinalizeOrderC
             throw new InvalidOperationException("Pedido não encontrado.");
         }
 
-        order.Finalize();
         _logger.LogInformation("Order {OrderId} finalized", request.OrderId);
         order.Complete(); // domain rule validation inside
 
