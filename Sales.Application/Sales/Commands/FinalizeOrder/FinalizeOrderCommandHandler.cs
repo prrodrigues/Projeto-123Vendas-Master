@@ -58,7 +58,7 @@ public sealed class FinalizeOrderCommandHandler : IRequestHandler<FinalizeOrderC
         _logger.LogInformation(
             "Publishing order finalized event for order {OrderId} with {ItemCount} items",
             order.Id,
-            evt.Items.Length);
+            evt.Items.Count);
 
         await _eventBus.PublishAsync(evt, "sales.order.finalized", cancellationToken);
 
